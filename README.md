@@ -21,7 +21,7 @@ Website Al-Quran modern yang dibangun dengan Next.js 15, menampilkan teks Al-Qur
 ## Cara Menjalankan
 
 1. Install dependencies:
-```bash
+```ba
 npm install
 ```
 

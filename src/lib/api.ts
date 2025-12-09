@@ -1,5 +1,5 @@
-// API utilities for fetching Quran data
-const API_BASE_URL = 'https://api.alquran.cloud/v1';
+// API utilities for fetching Quran data from equran.id
+const API_BASE_URL = 'https://equran.id/api/v2';
 
 export interface SurahInfo {
   number: number;
@@ -8,6 +8,17 @@ export interface SurahInfo {
   englishNameTranslation: string;
   numberOfAyahs: number;
   revelationType: string;
+  // equran.id specific fields
+  nomor?: number;
+  nama?: string;
+  namaLatin?: string;
+  jumlahAyat?: number;
+  tempatTurun?: string;
+  arti?: string;
+  deskripsi?: string;
+  audioFull?: {
+    [key: string]: string;
+  };
 }
 
 export interface Ayah {
@@ -21,70 +32,171 @@ export interface Ayah {
   hizbQuarter: number;
   sajda: boolean | { id: number; recommended: boolean; obligatory: boolean };
   audio?: string;
+  // equran.id specific fields
+  nomorAyat?: number;
+  teksArab?: string;
+  teksLatin?: string;
+  teksIndonesia?: string;
 }
 
 export interface SurahDetail extends SurahInfo {
   ayahs: Ayah[];
+  ayat?: Ayah[];
+}
+
+// Helper function to fetch with retry and timeout
+async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response;
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+    }
+  }
+  throw new Error('Max retries reached');
 }
 
 export async function getAllSurahs(): Promise<SurahInfo[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/surah`, { cache: 'force-cache' });
-    const data = await response.json();
-    return data.data;
+    const response = await fetchWithRetry(`${API_BASE_URL}/surat`, { 
+      cache: 'force-cache',
+      next: { revalidate: 86400 } // Cache for 24 hours
+    });
+    const json = await response.json();
+    const data = json.data;
+    
+    // Transform equran.id format to our format
+    return data.map((surah: any) => ({
+      number: surah.nomor,
+      name: surah.nama,
+      englishName: surah.namaLatin,
+      englishNameTranslation: surah.arti,
+      numberOfAyahs: surah.jumlahAyat,
+      revelationType: surah.tempatTurun === 'Mekah' ? 'Meccan' : 'Medinan',
+      ...surah
+    }));
   } catch (error) {
     console.error('Error fetching surahs:', error);
     return [];
   }
 }
 
-export async function getSurahById(id: number, edition: string = 'quran-uthmani'): Promise<SurahDetail | null> {
+export async function getSurahById(id: number): Promise<SurahDetail | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/surah/${id}/${edition}`);
-    const data = await response.json();
-    return data.data;
+    const response = await fetchWithRetry(`${API_BASE_URL}/surat/${id}`, {
+      next: { revalidate: 3600 } // Cache for 1 hour
+    });
+    const json = await response.json();
+    const data = json.data;
+    
+    // Transform equran.id format to our format
+    const transformed = {
+      number: data.nomor,
+      name: data.nama,
+      englishName: data.namaLatin,
+      englishNameTranslation: data.arti,
+      numberOfAyahs: data.jumlahAyat,
+      revelationType: data.tempatTurun === 'Mekah' ? 'Meccan' : 'Medinan',
+      ayahs: data.ayat.map((ayah: any) => ({
+        number: ayah.nomorAyat,
+        text: ayah.teksArab,
+        translation: ayah.teksIndonesia,
+        numberInSurah: ayah.nomorAyat,
+        juz: 1, // equran.id doesn't provide this
+        manzil: 1,
+        page: 1,
+        ruku: 1,
+        hizbQuarter: 1,
+        sajda: false,
+        teksArab: ayah.teksArab,
+        teksLatin: ayah.teksLatin,
+        teksIndonesia: ayah.teksIndonesia,
+        audio: ayah.audio ? ayah.audio['05'] : undefined,
+      })),
+      audioFull: data.audioFull,
+      ...data
+    };
+    
+    return transformed;
   } catch (error) {
     console.error('Error fetching surah:', error);
     return null;
   }
 }
 
-export async function getSurahWithTranslation(id: number, translationEdition: string = 'id.indonesian') {
+export async function getSurahWithTranslation(id: number) {
   try {
-    const [arabic, translation] = await Promise.all([
-      getSurahById(id, 'quran-uthmani'),
-      getSurahById(id, translationEdition)
-    ]);
-    return { arabic, translation };
+    const surah = await getSurahById(id);
+    
+    if (!surah) return null;
+    
+    // equran.id already includes translation, so we return it twice for compatibility
+    return { 
+      arabic: surah,
+      translation: surah
+    };
   } catch (error) {
     console.error('Error fetching surah with translation:', error);
     return null;
   }
 }
 
-// Get audio URL for entire surah
-export function getSurahAudioUrl(surahNumber: number, qari: string = 'ar.alafasy'): string {
-  return `https://cdn.islamic.network/quran/audio-surah/128/${qari}/${surahNumber}.mp3`;
+// Get audio URL for entire surah from equran.id
+export async function getSurahAudioUrl(surahNumber: number): Promise<string> {
+  try {
+    const response = await fetchWithRetry(`${API_BASE_URL}/surat/${surahNumber}`);
+    const json = await response.json();
+    const data = json.data;
+    
+    // equran.id provides multiple audio options, use the first available
+    if (data.audioFull) {
+      const audioKeys = Object.keys(data.audioFull);
+      if (audioKeys.length > 0) {
+        return data.audioFull[audioKeys[0]];
+      }
+    }
+    
+    // Fallback to default audio
+    return `https://equran.id/audio/full/${String(surahNumber).padStart(3, '0')}.mp3`;
+  } catch (error) {
+    console.error('Error fetching audio URL:', error);
+    return `https://equran.id/audio/full/${String(surahNumber).padStart(3, '0')}.mp3`;
+  }
 }
 
 // Get audio URL for specific ayah
-export function getAyahAudioUrl(surahNumber: number, ayahNumber: number, qari: string = 'ar.alafasy'): string {
+export function getAyahAudioUrl(surahNumber: number, ayahNumber: number): string {
+  const paddedSurah = String(surahNumber).padStart(3, '0');
   const paddedAyah = String(ayahNumber).padStart(3, '0');
-  return `https://cdn.islamic.network/quran/audio/128/${qari}/${surahNumber}${paddedAyah}.mp3`;
+  return `https://equran.id/audio/${paddedSurah}${paddedAyah}.mp3`;
 }
 
-// Popular reciters
+// Popular reciters (equran.id specific)
 export const RECITERS = [
-  { id: 'ar.alafasy', name: 'Mishary Rashid Alafasy' },
-  { id: 'ar.abdulbasitmurattal', name: 'Abdul Basit (Murattal)' },
-  { id: 'ar.abdurrahmaansudais', name: 'Abdurrahman As-Sudais' },
-  { id: 'ar.husary', name: 'Mahmoud Khalil Al-Husary' },
-  { id: 'ar.minshawi', name: 'Mohamed Siddiq Al-Minshawi' },
+  { id: '01', name: 'Abdullah Al-Juhany' },
+  { id: '02', name: 'Abdul Muhsin Al-Qasim' },
+  { id: '03', name: 'Abdurrahman As-Sudais' },
+  { id: '04', name: 'Ibrahim Al-Dossari' },
+  { id: '05', name: 'Misyari Rasyid Al-Afasi' },
 ];
 
 // Available translations
 export const TRANSLATIONS = [
-  { id: 'id.indonesian', name: 'Bahasa Indonesia' },
-  { id: 'en.sahih', name: 'English - Sahih International' },
-  { id: 'en.pickthall', name: 'English - Pickthall' },
+  { id: 'id.indonesian', name: 'Bahasa Indonesia - Kementerian Agama' },
 ];

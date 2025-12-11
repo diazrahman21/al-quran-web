@@ -54,8 +54,7 @@ export default function Home() {
             <span className="block text-green-600 dark:text-green-400 mt-2">Kapan Saja, Di Mana Saja</span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Platform digital untuk membaca Al-Quran dengan terjemahan bahasa Indonesia dan mendengarkan bacaan dari qari terbaik dunia
-          </p>
+Sebuah platform digital yang menyediakan layanan membaca Al-Qur’an lengkap dengan terjemahan bahasa Indonesia serta dilengkapi fitur mendengarkan lantunan bacaan dari qari-qari terbaik dunia.          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/surah"

@@ -3,7 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 
 export const metadata: Metadata = {
-  title: "Al-Quran Web",
+  title: "BacaQuran",
   description: "Website Al-Quran dengan terjemahan dan audio",
 };
 

@@ -1,16 +1,54 @@
+'use client';
+
 import Link from 'next/link';
+import { LuAudioLines } from "react-icons/lu";
+import { IoBook } from "react-icons/io5";
+import { MdGTranslate } from 'react-icons/md';
+import { IoSearch } from 'react-icons/io5';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [surahs, setSurahs] = useState<any[]>([]);
+  const [filteredSurahs, setFilteredSurahs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchSurahs = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('https://equran.id/api/v2/surat');
+        const data = await response.json();
+        setSurahs(data.data);
+        setFilteredSurahs(data.data);
+      } catch (error) {
+        console.error('Error fetching surahs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSurahs();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredSurahs(surahs);
+    } else {
+      const filtered = surahs.filter((surah) =>
+        surah.namaLatin?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        surah.arti?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        surah.nomor?.toString().includes(searchQuery)
+      );
+      setFilteredSurahs(filtered);
+    }
+  }, [searchQuery, surahs]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="mb-6">
-            <h1 className="text-5xl md:text-7xl font-bold text-green-700 dark:text-green-400 mb-8 leading-tight">
-              ﷽
-            </h1>
-          </div>
           <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
             Baca Al-Quran
             <span className="block text-green-600 dark:text-green-400 mt-2">Kapan Saja, Di Mana Saja</span>
@@ -34,6 +72,63 @@ export default function Home() {
             >
               Pelajari Lebih Lanjut
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Search Section */}
+      <section className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+              Cari Surah
+            </h3>
+            <div className="relative">
+              <IoSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
+              <input
+                type="text"
+                placeholder="Cari berdasarkan nama atau nomor surah..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-green-500 dark:focus:border-green-400 focus:outline-none transition-colors"
+              />
+            </div>
+            
+            {searchQuery && (
+              <div className="mt-6 max-h-96 overflow-y-auto">
+                {isLoading ? (
+                  <p className="text-center text-gray-500 dark:text-gray-400">Loading...</p>
+                ) : filteredSurahs.length > 0 ? (
+                  <div className="space-y-2">
+                    {filteredSurahs.slice(0, 10).map((surah) => (
+                      <Link
+                        key={surah.nomor}
+                        href={`/surah/${surah.nomor}`}
+                        className="block p-4 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-green-50 dark:hover:bg-green-900/20 border border-gray-200 dark:border-gray-600 hover:border-green-500 dark:hover:border-green-500 transition-all"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                              <span className="text-green-600 dark:text-green-400 font-bold">{surah.nomor}</span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-gray-900 dark:text-white">{surah.namaLatin}</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{surah.arti}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-arabic">{surah.nama}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{surah.jumlahAyat} Ayat</p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 dark:text-gray-400">Tidak ada surah yang ditemukan</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -77,7 +172,7 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all p-8 border border-gray-100 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-3xl">📖</span>
+                <IoBook className="text-3xl text-green-600 dark:text-green-400" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                 Teks Arab Jelas
@@ -89,7 +184,7 @@ export default function Home() {
 
             <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all p-8 border border-gray-100 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-3xl">🌐</span>
+                <MdGTranslate className="text-3xl text-blue-600 dark:text-blue-400" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                 Terjemahan
@@ -101,7 +196,7 @@ export default function Home() {
 
             <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all p-8 border border-gray-100 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500">
               <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-3xl">🎵</span>
+                <LuAudioLines className="text-3xl text-purple-600 dark:text-purple-400" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                 Audio Berkualitas
@@ -144,7 +239,6 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-8 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-2xl">📖</span>
                   <span className="text-xl font-bold text-gray-800 dark:text-white">Al-Quran Digital</span>
                 </div>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -177,7 +271,7 @@ export default function Home() {
             </div>
             <div className="border-t border-gray-200 dark:border-gray-800 pt-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
-                © 2025 Al-Quran Digital. Dibuat dengan ❤️ untuk umat Muslim
+                © 2025 Al-Quran Digital
               </p>
             </div>
           </div>

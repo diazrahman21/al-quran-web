@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { FaPauseCircle } from 'react-icons/fa';
+import { FaPlay } from 'react-icons/fa6';
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -78,9 +80,9 @@ export default function AudioPlayer({ audioUrl, surahName }: AudioPlayerProps) {
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : isPlaying ? (
-            <span className="text-2xl">⏸</span>
+            <FaPauseCircle className="text-2xl" />
           ) : (
-            <span className="text-2xl pl-1">▶</span>
+            <FaPlay className="text-2xl" />
           )}
         </button>
         <div className="flex-1">

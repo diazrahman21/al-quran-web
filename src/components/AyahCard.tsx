@@ -47,7 +47,7 @@ export default function AyahCard({ ayah }: AyahCardProps) {
             } rounded-full w-10 h-10 flex items-center justify-center hover:scale-110 transition-all`}
             title={isPlaying ? 'Stop audio' : 'Putar audio ayat ini'}
           >
-            {isPlaying ? '⏸' : '▶️'}
+            {isPlaying ? '⏸' : '▶'}
           </button>
         )}
       </div>

@@ -2,15 +2,38 @@ import { getSurahWithTranslation, getSurahAudioUrl } from '@/lib/api';
 import AudioPlayer from '@/components/AudioPlayer';
 import AyahCard from '@/components/AyahCard';
 import Link from 'next/link';
+import { MdAnnouncement } from 'react-icons/md';
+import { IoMdArrowRoundBack } from 'react-icons/io';
 
-export default async function SurahDetailPage({ params }: { params: { id: string } }) {
-  const surahId = parseInt(params.id);
+export default async function SurahDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const surahId = parseInt(id);
+  
+  // Validate surah ID
+  if (isNaN(surahId) || surahId < 1 || surahId > 114) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center p-8">
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">Surah tidak valid</p>
+          <Link href="/surah" className="text-green-600 hover:text-green-700 dark:text-green-400">
+            Kembali ke Daftar Surah
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const data = await getSurahWithTranslation(surahId);
 
   if (!data || !data.arabic) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl text-gray-600">Surah tidak ditemukan</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center p-8">
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">Surah tidak ditemukan</p>
+          <Link href="/surah" className="text-green-600 hover:text-green-700 dark:text-green-400">
+            Kembali ke Daftar Surah
+          </Link>
+        </div>
       </div>
     );
   }
@@ -34,10 +57,10 @@ export default async function SurahDetailPage({ params }: { params: { id: string
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
             <span className="bg-white/20 px-3 py-1 rounded-full">
-              📖 {arabic.numberOfAyahs} Ayat
+               {arabic.numberOfAyahs} Ayat
             </span>
             <span className="bg-white/20 px-3 py-1 rounded-full">
-              📍 {arabic.revelationType}
+               {arabic.revelationType}
             </span>
           </div>
         </div>
@@ -46,7 +69,7 @@ export default async function SurahDetailPage({ params }: { params: { id: string
         {arabic.deskripsi && (
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-6 border-l-4 border-blue-500">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
-              <span>ℹ️</span>
+              <MdAnnouncement />
               Tentang Surah Ini
             </h3>
             <div 
@@ -62,7 +85,8 @@ export default async function SurahDetailPage({ params }: { params: { id: string
             href="/surah"
             className="text-green-600 dark:text-green-400 hover:underline inline-flex items-center gap-2"
           >
-            ← Kembali ke Daftar Surah
+            <IoMdArrowRoundBack size={20} />
+             Kembali ke Daftar Surah
           </Link>
         </div>
 

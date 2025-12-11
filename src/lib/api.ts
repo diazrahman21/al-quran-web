@@ -51,6 +51,8 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
+      console.log(`Fetching URL: ${url}`);
+      
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
@@ -59,6 +61,8 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
       clearTimeout(timeout);
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`HTTP error! status: ${response.status}, body: ${errorText}`);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -99,11 +103,30 @@ export async function getAllSurahs(): Promise<SurahInfo[]> {
 
 export async function getSurahById(id: number): Promise<SurahDetail | null> {
   try {
+    // Validate surah ID (1-114)
+    if (id < 1 || id > 114) {
+      console.error(`Invalid surah ID: ${id}`);
+      return null;
+    }
+
     const response = await fetchWithRetry(`${API_BASE_URL}/surat/${id}`, {
       next: { revalidate: 3600 } // Cache for 1 hour
     });
     const json = await response.json();
+    
+    // Check if response has data
+    if (!json.data) {
+      console.error('No data in response:', json);
+      return null;
+    }
+    
     const data = json.data;
+    
+    // Check if ayat exists
+    if (!data.ayat || !Array.isArray(data.ayat)) {
+      console.error('No ayat data in response:', data);
+      return null;
+    }
     
     // Transform equran.id format to our format
     const transformed = {
@@ -142,9 +165,18 @@ export async function getSurahById(id: number): Promise<SurahDetail | null> {
 
 export async function getSurahWithTranslation(id: number) {
   try {
+    // Validate surah ID
+    if (id < 1 || id > 114) {
+      console.error(`Invalid surah ID for translation: ${id}`);
+      return null;
+    }
+
     const surah = await getSurahById(id);
     
-    if (!surah) return null;
+    if (!surah) {
+      console.error(`Failed to fetch surah ${id}`);
+      return null;
+    }
     
     // equran.id already includes translation, so we return it twice for compatibility
     return { 

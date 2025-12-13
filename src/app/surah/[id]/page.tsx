@@ -1,9 +1,10 @@
-import { getSurahWithTranslation, getSurahAudioUrl } from '@/lib/api';
+import { getSurahWithTranslation } from '@/lib/api';
 import AudioPlayer from '@/components/AudioPlayer';
 import AyahCard from '@/components/AyahCard';
 import Link from 'next/link';
 import { MdAnnouncement } from 'react-icons/md';
 import { IoMdArrowRoundBack } from 'react-icons/io';
+import { ReciterProvider } from '@/contexts/ReciterContext';
 
 export default async function SurahDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,11 +40,11 @@ export default async function SurahDetailPage({ params }: { params: Promise<{ id
   }
 
   const { arabic } = data;
-  const audioUrl = await getSurahAudioUrl(surahId);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+    <ReciterProvider>
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Surah Header */}
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 rounded-lg shadow-lg p-8 mb-6 text-center text-white">
           <h1 className="text-4xl md:text-5xl font-arabic mb-3">
@@ -91,9 +92,15 @@ export default async function SurahDetailPage({ params }: { params: Promise<{ id
         </div>
 
         {/* Audio Player */}
-        <div className="mb-6">
-          <AudioPlayer audioUrl={audioUrl} surahName={arabic.englishName} />
-        </div>
+        {arabic.audioFull && (
+          <div className="mb-6">
+            <AudioPlayer 
+              audioFull={arabic.audioFull} 
+              surahName={arabic.englishName}
+              surahNumber={surahId}
+            />
+          </div>
+        )}
 
         {/* Ayahs */}
         <div className="space-y-6">
@@ -103,6 +110,7 @@ export default async function SurahDetailPage({ params }: { params: Promise<{ id
         </div>
       </main>
     </div>
+    </ReciterProvider>
   );
 }
 

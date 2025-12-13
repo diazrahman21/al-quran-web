@@ -4,14 +4,13 @@ export default function AboutPage() {
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">
-            Tentang Al-Quran Web
+            Tentang BacaQuran
           </h1>
           
           <div className="space-y-4 text-gray-700 dark:text-gray-300">
             <p>
-              Al-Quran Web adalah platform digital untuk membaca dan mempelajari Al-Quran
-              dengan mudah dan nyaman. Website ini dirancang dengan antarmuka modern dan
-              responsif untuk memberikan pengalaman terbaik dalam membaca kitab suci.
+              BacaQuran merupakan platform digital yang memudahkan pengguna dalam membaca dan mempelajari Al-Qur’an secara praktis dan nyaman. 
+              Website ini dikembangkan dengan tampilan modern serta desain responsif untuk menghadirkan pengalaman terbaik dalam mengakses dan memahami kitab suci.            
             </p>
 
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
@@ -46,7 +45,6 @@ export default function AboutPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Semoga website ini bermanfaat dalam mempelajari Al-Quran
               </p>
-              <p className="text-2xl mt-2">﷽</p>
             </div>
           </div>
         </div>

@@ -150,7 +150,7 @@ export async function getSurahById(id: number): Promise<SurahDetail | null> {
         teksArab: ayah.teksArab,
         teksLatin: ayah.teksLatin,
         teksIndonesia: ayah.teksIndonesia,
-        audio: ayah.audio ? ayah.audio['05'] : undefined,
+        audio: ayah.audio, // Store the entire audio object with all reciters
       })),
       audioFull: data.audioFull,
       ...data
@@ -226,6 +226,7 @@ export const RECITERS = [
   { id: '03', name: 'Abdurrahman As-Sudais' },
   { id: '04', name: 'Ibrahim Al-Dossari' },
   { id: '05', name: 'Misyari Rasyid Al-Afasi' },
+  { id: '06', name: 'Yasser Al-Dosari' },
 ];
 
 // Available translations

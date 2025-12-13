@@ -3,13 +3,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaPauseCircle } from 'react-icons/fa';
 import { FaPlay } from 'react-icons/fa6';
+import { RECITERS } from '@/lib/api';
+import { useReciter } from '@/contexts/ReciterContext';
 
 interface AudioPlayerProps {
-  audioUrl: string;
+  audioFull: { [key: string]: string };
   surahName: string;
+  surahNumber: number;
 }
 
-export default function AudioPlayer({ audioUrl, surahName }: AudioPlayerProps) {
+export default function AudioPlayer({ audioFull, surahName, surahNumber }: AudioPlayerProps) {
+  const { selectedReciter, setSelectedReciter } = useReciter();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -37,6 +41,36 @@ export default function AudioPlayer({ audioUrl, surahName }: AudioPlayerProps) {
       audio.removeEventListener('canplay', handleCanPlay);
     };
   }, []);
+
+  // Reset audio when reciter changes
+  useEffect(() => {
+    const resetAudio = async () => {
+      if (audioRef.current) {
+        const wasPlaying = isPlaying;
+        
+        // Pause current audio
+        audioRef.current.pause();
+        setIsPlaying(false);
+        setCurrentTime(0);
+        
+        // Load new audio
+        audioRef.current.load();
+        
+        // Wait a bit for load to complete before trying to play
+        if (wasPlaying) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          try {
+            await audioRef.current.play();
+            setIsPlaying(true);
+          } catch (error) {
+            console.error('Error auto-playing after reciter change:', error);
+          }
+        }
+      }
+    };
+    
+    resetAudio();
+  }, [selectedReciter]);
 
   const togglePlay = async () => {
     if (audioRef.current) {
@@ -69,8 +103,29 @@ export default function AudioPlayer({ audioUrl, surahName }: AudioPlayerProps) {
     audioRef.current.currentTime = pos * duration;
   };
 
+  const audioUrl = audioFull[selectedReciter] || Object.values(audioFull)[0];
+  const currentReciter = RECITERS.find(r => r.id === selectedReciter);
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+      {/* Reciter Selection */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Pilih Qari
+        </label>
+        <select
+          value={selectedReciter}
+          onChange={(e) => setSelectedReciter(e.target.value)}
+          className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+        >
+          {RECITERS.map((reciter) => (
+            <option key={reciter.id} value={reciter.id}>
+              {reciter.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex items-center gap-4 mb-4">
         <button
           onClick={togglePlay}
@@ -87,10 +142,13 @@ export default function AudioPlayer({ audioUrl, surahName }: AudioPlayerProps) {
         </button>
         <div className="flex-1">
           <h4 className="font-semibold text-gray-800 dark:text-white mb-1">
-            🎵 Audio Bacaan
+             Audio Bacaan
           </h4>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {surahName}
+          </p>
+          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+            {currentReciter?.name}
           </p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useReciter } from '@/contexts/ReciterContext';
 
 interface AyahCardProps {
   ayah: {
@@ -8,28 +9,77 @@ interface AyahCardProps {
     teksArab: string;
     teksLatin?: string;
     teksIndonesia?: string;
-    audio?: string;
+    audio?: { [key: string]: string } | string;
   };
 }
 
 export default function AyahCard({ ayah }: AyahCardProps) {
+  const { selectedReciter } = useReciter();
   const [isPlaying, setIsPlaying] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
-  const handlePlayAudio = () => {
-    if (ayah.audio) {
+  // Get audio URL based on selected reciter
+  const getAudioUrl = () => {
+    if (!ayah.audio) return null;
+    
+    if (typeof ayah.audio === 'string') {
+      return ayah.audio;
+    }
+    
+    // If audio is an object with reciter IDs
+    return ayah.audio[selectedReciter] || Object.values(ayah.audio)[0];
+  };
+
+  // Stop audio when reciter changes
+  useEffect(() => {
+    if (audio && isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+      setAudio(null);
+    }
+  }, [selectedReciter]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause();
+        setAudio(null);
+      }
+    };
+  }, [audio]);
+
+  const handlePlayAudio = async () => {
+    const audioUrl = getAudioUrl();
+    if (audioUrl) {
       if (isPlaying && audio) {
         audio.pause();
         setIsPlaying(false);
+        setAudio(null);
       } else {
-        const newAudio = new Audio(ayah.audio);
-        newAudio.play();
+        // Stop any previous audio first
+        if (audio) {
+          audio.pause();
+          setAudio(null);
+        }
+
+        const newAudio = new Audio(audioUrl);
         newAudio.onended = () => setIsPlaying(false);
         setAudio(newAudio);
-        setIsPlaying(true);
+        
+        try {
+          await newAudio.play();
+          setIsPlaying(true);
+        } catch (error) {
+          console.error('Error playing audio:', error);
+          setIsPlaying(false);
+          setAudio(null);
+        }
       }
     }
   };
+
+  const audioUrl = getAudioUrl();
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
@@ -37,7 +87,7 @@ export default function AyahCard({ ayah }: AyahCardProps) {
         <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold">
           {ayah.numberInSurah}
         </span>
-        {ayah.audio && (
+        {audioUrl && (
           <button
             onClick={handlePlayAudio}
             className={`${

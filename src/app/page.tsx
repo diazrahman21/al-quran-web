@@ -12,6 +12,7 @@ export default function Home() {
   const [surahs, setSurahs] = useState<any[]>([]);
   const [filteredSurahs, setFilteredSurahs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const fetchSurahs = async () => {
@@ -31,6 +32,19 @@ export default function Home() {
     fetchSurahs();
   }, []);
 
+  // Track mouse position for aurora effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({
+        x: e.clientX,
+        y: e.clientY,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredSurahs(surahs);
@@ -45,9 +59,52 @@ export default function Home() {
   }, [searchQuery, surahs]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-[#0a0a0a] dark:via-[#0f0f0f] dark:to-[#0a0a0a] relative overflow-hidden">
+      {/* Aurora Effect Background - Static Diagonal Glow */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {/* Blue Aurora from top-right */}
+        <div 
+          className="absolute -top-1/2 -right-1/2 w-[1200px] h-[1200px] opacity-20 dark:opacity-50 blur-[120px]"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(96, 165, 250, 0.6) 30%, transparent 70%)',
+            transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
+            transition: 'transform 0.5s ease-out',
+          }}
+        />
+        
+        {/* Purple/Pink Aurora from middle-right */}
+        <div 
+          className="absolute top-1/4 -right-1/3 w-[1000px] h-[1000px] opacity-15 dark:opacity-40 blur-[100px]"
+          style={{
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.7) 0%, rgba(168, 85, 247, 0.5) 40%, transparent 80%)',
+            transform: `translate(${mousePosition.x * -0.015}px, ${mousePosition.y * 0.015}px)`,
+            transition: 'transform 0.6s ease-out',
+          }}
+        />
+        
+        {/* Orange/Red Aurora from bottom-left */}
+        <div 
+          className="absolute -bottom-1/3 -left-1/3 w-[900px] h-[900px] opacity-12 dark:opacity-35 blur-[110px]"
+          style={{
+            background: 'linear-gradient(45deg, rgba(251, 146, 60, 0.7) 0%, rgba(239, 68, 68, 0.5) 40%, transparent 75%)',
+            transform: `translate(${mousePosition.x * -0.01}px, ${mousePosition.y * -0.01}px)`,
+            transition: 'transform 0.7s ease-out',
+          }}
+        />
+        
+        {/* Green Aurora accent */}
+        <div 
+          className="absolute top-1/2 left-1/4 w-[800px] h-[800px] opacity-15 dark:opacity-30 blur-[90px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.6) 0%, rgba(5, 150, 105, 0.4) 40%, transparent 70%)',
+            transform: `translate(${mousePosition.x * 0.01}px, ${mousePosition.y * -0.01}px)`,
+            transition: 'transform 0.8s ease-out',
+          }}
+        />
+      </div>
+
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
+      <section className="container mx-auto px-4 py-16 md:py-24 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
             Baca Al-Quran
@@ -76,7 +133,7 @@ Sebuah platform digital yang menyediakan layanan membaca Al-Qur’an lengkap den
       </section>
 
       {/* Search Section */}
-      <section className="container mx-auto px-4 py-8">
+      <section className="container mx-auto px-4 py-8 relative z-10">
         <div className="max-w-3xl mx-auto">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
@@ -133,7 +190,7 @@ Sebuah platform digital yang menyediakan layanan membaca Al-Qur’an lengkap den
       </section>
 
       {/* Stats Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16 relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-lg border border-gray-100 dark:border-gray-700">
@@ -157,7 +214,7 @@ Sebuah platform digital yang menyediakan layanan membaca Al-Qur’an lengkap den
       </section>
 
       {/* Features Section */}
-      <section id="features" className="container mx-auto px-4 py-20">
+      <section id="features" className="container mx-auto px-4 py-20 relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
@@ -208,31 +265,9 @@ Sebuah platform digital yang menyediakan layanan membaca Al-Qur’an lengkap den
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 rounded-3xl shadow-2xl p-12 md:p-16 text-center">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-              Mulai Perjalanan Spiritual Anda
-            </h2>
-            <p className="text-xl text-green-50 mb-8 max-w-2xl mx-auto">
-              Tingkatkan kualitas ibadah dan pemahaman Anda tentang Al-Quran
-            </p>
-            <Link
-              href="/surah"
-              className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-green-600 font-bold py-4 px-10 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-            >
-              <span>Baca Sekarang</span>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 py-12">
+      <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 py-12 relative z-10">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8 mb-8">

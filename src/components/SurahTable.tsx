@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { IoArrowBack, IoArrowForward, IoPause, IoPlay, IoSearch } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoClose, IoPause, IoPlay, IoSearch } from 'react-icons/io5';
 import type { SurahInfo } from '@/lib/api';
 import type { EnglishSurahSummary } from '@/lib/english';
 import { tempatTurunLabel } from '@/lib/quran';
@@ -108,6 +108,16 @@ export default function SurahTable({
             placeholder="Cari berdasarkan nama atau nomor surah"
             aria-label="Cari surah"
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="search-clear"
+              aria-label="Hapus pencarian"
+            >
+              <IoClose size={14} />
+            </button>
+          )}
         </label>
 
         <div role="tablist" aria-label="Tempat turun" className="inline-flex gap-0.5 rounded-[10px] bg-muted p-1">
@@ -129,7 +139,7 @@ export default function SurahTable({
           ))}
         </div>
 
-        <label className="outline-button gap-2.5">
+        <label className="outline-button h-12 gap-2.5 rounded-xl">
           <span className="whitespace-nowrap">Urutkan:</span>
           <select
             value={sort}

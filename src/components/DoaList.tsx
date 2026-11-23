@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { IoArrowBack, IoArrowForward, IoSearch } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoClose, IoSearch } from 'react-icons/io5';
 import type { DoaListItem } from '@/lib/doa';
 
 const PAGE_SIZE = 12;
@@ -67,9 +67,19 @@ export default function DoaList({ doas }: { doas: DoaListItem[] }) {
               placeholder="Cari nama, grup, atau isi doa"
               aria-label="Cari doa"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="search-clear"
+                aria-label="Hapus pencarian"
+              >
+                <IoClose size={14} />
+              </button>
+            )}
           </label>
 
-          <label className="outline-button max-w-full gap-2 sm:max-w-[280px]">
+          <label className="outline-button h-12 max-w-full gap-2 rounded-xl sm:max-w-[280px]">
             <select
               value={group}
               onChange={(event) => setGroup(event.target.value)}

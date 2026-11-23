@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getSurahWithTranslation } from '@/lib/api';
+import { getEnglishSurahByNumber } from '@/lib/english';
 import { ReciterProvider } from '@/contexts/ReciterContext';
 import SurahReader from '@/components/SurahReader';
 
@@ -22,7 +23,10 @@ export default async function SurahDetailPage({ params }: { params: Promise<{ id
 
   if (!Number.isInteger(surahId) || surahId < 1 || surahId > 114) notFound();
 
-  const data = await getSurahWithTranslation(surahId);
+  const [data, english] = await Promise.all([
+    getSurahWithTranslation(surahId),
+    getEnglishSurahByNumber(surahId),
+  ]);
 
   if (!data || !data.arabic?.ayahs?.length) {
     return (
@@ -40,7 +44,7 @@ export default async function SurahDetailPage({ params }: { params: Promise<{ id
 
   return (
     <ReciterProvider>
-      <SurahReader surah={data.arabic} />
+      <SurahReader surah={data.arabic} english={english} />
     </ReciterProvider>
   );
 }

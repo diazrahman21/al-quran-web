@@ -111,4 +111,5 @@ export { RECITERS };
 
 export const TRANSLATIONS = [
   { id: 'id.indonesian', name: 'Bahasa Indonesia - Kementerian Agama' },
+  { id: 'en.asad', name: 'English - Muhammad Asad' },
 ];

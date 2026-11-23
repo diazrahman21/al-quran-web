@@ -1,4 +1,5 @@
 import { getAllSurahs } from '@/lib/api';
+import { getAllEnglishSurahs } from '@/lib/english';
 import SurahTable from '@/components/SurahTable';
 
 export const metadata = {
@@ -7,7 +8,7 @@ export const metadata = {
 };
 
 export default async function SurahPage() {
-  const surahs = await getAllSurahs();
+  const [surahs, englishSurahs] = await Promise.all([getAllSurahs(), getAllEnglishSurahs()]);
 
   return (
     <main className="page-container pb-16 pt-12 sm:pt-14">
@@ -20,7 +21,7 @@ export default async function SurahPage() {
         </p>
       </div>
 
-      <SurahTable surahs={surahs} />
+      <SurahTable surahs={surahs} englishSurahs={englishSurahs} />
     </main>
   );
 }

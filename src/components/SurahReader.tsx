@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   IoArrowBack,
   IoBookmark,
@@ -19,15 +19,17 @@ import {
   IoVolumeHighOutline,
 } from 'react-icons/io5';
 import type { SurahDetail } from '@/lib/api';
+import type { EnglishSurah } from '@/lib/english';
 import { formatTime, getAudioUrl, getJuz, RECITERS, tempatTurunLabel } from '@/lib/quran';
 import { useReciter } from '@/contexts/ReciterContext';
 import SurahBadge from './SurahBadge';
 
-export default function SurahReader({ surah }: { surah: SurahDetail }) {
+export default function SurahReader({ surah, english }: { surah: SurahDetail; english?: EnglishSurah | null }) {
   const { selectedReciter, setSelectedReciter } = useReciter();
   const ayahs = surah.ayahs;
 
   const [showTranslation, setShowTranslation] = useState(true);
+  const [language, setLanguage] = useState<'id' | 'en'>('id');
   const [fontSize, setFontSize] = useState(40);
   const [activeAyah, setActiveAyah] = useState(ayahs[0]?.nomorAyat ?? 1);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -36,6 +38,12 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
   const [duration, setDuration] = useState(0);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [copiedAyah, setCopiedAyah] = useState<number | null>(null);
+
+  const englishAyahMap = useMemo(
+    () => new Map((english?.ayahs ?? []).map((ayah) => [ayah.numberInSurah, ayah])),
+    [english],
+  );
+  const usingEnglish = language === 'en' && Boolean(english);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const isPlayingRef = useRef(false);
@@ -140,9 +148,17 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
     });
   };
 
+  const getTranslationText = (ayah: SurahDetail['ayahs'][number]) => {
+    const englishAyah = englishAyahMap.get(ayah.nomorAyat);
+    if (usingEnglish && englishAyah) {
+      return [englishAyah.textLatin, englishAyah.textEnglish].filter(Boolean).join('\n');
+    }
+    return ayah.teksIndonesia;
+  };
+
   const copyAyah = async (ayah: SurahDetail['ayahs'][number]) => {
     try {
-      await navigator.clipboard.writeText(`${ayah.teksArab}\n\n${ayah.teksIndonesia}`);
+      await navigator.clipboard.writeText(`${ayah.teksArab}\n\n${getTranslationText(ayah)}`);
       setCopiedAyah(ayah.nomorAyat);
       window.setTimeout(() => setCopiedAyah(null), 1800);
     } catch {
@@ -154,7 +170,11 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
     const url = `${window.location.origin}/surah/${surah.nomor}#ayat-${ayah.nomorAyat}`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: `${surah.namaLatin} ayat ${ayah.nomorAyat}`, text: ayah.teksIndonesia, url });
+        await navigator.share({
+          title: `${surah.namaLatin} ayat ${ayah.nomorAyat}`,
+          text: getTranslationText(ayah),
+          url,
+        });
       } catch {
         // Pembagian dibatalkan pengguna.
       }
@@ -196,6 +216,11 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
               <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium">
                 Juz {getJuz(surah.nomor)}
               </span>
+              {usingEnglish && english && (
+                <span className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium">
+                  {english.englishName} · {english.englishNameTranslation}
+                </span>
+              )}
             </div>
           </div>
           <p lang="ar" dir="rtl" className="font-arabic text-6xl leading-[1.3] text-primary sm:text-[72px]">
@@ -224,6 +249,21 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
             </span>
             Terjemahan
           </button>
+
+          {english && (
+            <label className="outline-button h-10 gap-2">
+              <span className="text-xs text-muted-foreground">Bahasa</span>
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value as 'id' | 'en')}
+                aria-label="Bahasa terjemahan"
+                className="cursor-pointer border-0 bg-transparent text-sm font-medium text-foreground outline-none"
+              >
+                <option value="id">Indonesia</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+          )}
 
           <label className="outline-button h-10 cursor-pointer gap-2">
             <IoVolumeHighOutline size={16} className="text-muted-foreground" />
@@ -263,6 +303,7 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
         {ayahs.map((ayah) => {
           const active = ayah.nomorAyat === activeAyah;
           const saved = bookmarks.includes(ayah.nomorAyat);
+          const englishAyah = englishAyahMap.get(ayah.nomorAyat);
           return (
             <div key={ayah.nomorAyat} id={`ayat-${ayah.nomorAyat}`} className="scroll-mt-36 border-b border-border py-1 last:border-b-0">
               <div className={`flex flex-col gap-3.5 rounded-[14px] px-3 py-5 transition-colors sm:gap-4 sm:px-6 ${active ? 'bg-accent' : ''}`}>
@@ -299,11 +340,23 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
                   {ayah.teksArab}
                 </p>
 
-                {showTranslation && (
-                  <p className="text-[15px] leading-[1.7] text-muted-foreground sm:text-[17px]">
-                    {ayah.teksIndonesia}
-                  </p>
-                )}
+                {showTranslation &&
+                  (usingEnglish && englishAyah ? (
+                    <div className="space-y-1.5">
+                      {englishAyah.textLatin && (
+                        <p lang="en" className="text-[13px] italic text-muted-foreground/80 sm:text-sm">
+                          {englishAyah.textLatin}
+                        </p>
+                      )}
+                      <p lang="en" className="text-[15px] leading-[1.7] text-muted-foreground sm:text-[17px]">
+                        {englishAyah.textEnglish}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[15px] leading-[1.7] text-muted-foreground sm:text-[17px]">
+                      {ayah.teksIndonesia}
+                    </p>
+                  ))}
               </div>
             </div>
           );
@@ -335,7 +388,9 @@ export default function SurahReader({ surah }: { surah: SurahDetail }) {
       <div className="pointer-events-none sticky bottom-6 z-30 mx-auto hidden w-full max-w-reader px-8 sm:block">
         <div className="pointer-events-auto flex flex-wrap items-center gap-5 rounded-2xl border border-border bg-card p-4 shadow-[0_8px_28px_rgba(0,0,0,0.10)]">
           <div className="flex-[0_0_150px]">
-            <div className="text-sm font-semibold">{surah.namaLatin}</div>
+            <div className="text-sm font-semibold">
+              {usingEnglish && english ? english.englishName : surah.namaLatin}
+            </div>
             <div className="text-xs text-muted-foreground">
               Ayat {activeAyah} dari {surah.jumlahAyat}
             </div>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { IoArrowBack, IoArrowForward, IoPause, IoPlay, IoSearch } from 'react-icons/io5';
 import type { SurahInfo } from '@/lib/api';
+import type { EnglishSurahSummary } from '@/lib/english';
 import { tempatTurunLabel } from '@/lib/quran';
 import SurahBadge from './SurahBadge';
 
@@ -12,13 +13,24 @@ type Sort = 'nomor' | 'nama' | 'ayat';
 
 const PAGE_SIZE = 10;
 
-export default function SurahTable({ surahs }: { surahs: SurahInfo[] }) {
+export default function SurahTable({
+  surahs,
+  englishSurahs = [],
+}: {
+  surahs: SurahInfo[];
+  englishSurahs?: EnglishSurahSummary[];
+}) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('Semua');
   const [sort, setSort] = useState<Sort>('nomor');
   const [page, setPage] = useState(1);
   const [playingNumber, setPlayingNumber] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const englishMap = useMemo(
+    () => new Map(englishSurahs.map((surah) => [surah.number, surah])),
+    [englishSurahs],
+  );
 
   useEffect(() => {
     return () => audioRef.current?.pause();
@@ -30,12 +42,15 @@ export default function SurahTable({ surahs }: { surahs: SurahInfo[] }) {
     const term = query.trim().toLowerCase();
     return surahs
       .filter((surah) => {
+        const english = englishMap.get(surah.nomor);
         const matchesTerm =
           !term ||
           surah.namaLatin.toLowerCase().includes(term) ||
           surah.arti.toLowerCase().includes(term) ||
           surah.nama.includes(query.trim()) ||
-          String(surah.nomor) === query.trim();
+          String(surah.nomor) === query.trim() ||
+          english?.englishName.toLowerCase().includes(term) ||
+          english?.englishNameTranslation.toLowerCase().includes(term);
         const matchesFilter = filter === 'Semua' || tempatTurunLabel(surah.tempatTurun) === filter;
         return matchesTerm && matchesFilter;
       })
@@ -44,7 +59,7 @@ export default function SurahTable({ surahs }: { surahs: SurahInfo[] }) {
         if (sort === 'ayat') return b.jumlahAyat - a.jumlahAyat;
         return a.nomor - b.nomor;
       });
-  }, [surahs, query, filter, sort]);
+  }, [surahs, englishMap, query, filter, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -142,37 +157,45 @@ export default function SurahTable({ surahs }: { surahs: SurahInfo[] }) {
               <span />
             </div>
 
-            {visible.map((surah) => (
-              <div
-                key={surah.nomor}
-                className="row grid min-h-[72px] grid-cols-[72px_minmax(200px,1.4fr)_130px_90px_minmax(120px,1fr)_64px] items-center border-b border-border px-5 last:border-b-0"
-              >
-                <SurahBadge number={surah.nomor} />
-                <Link href={`/surah/${surah.nomor}`} className="min-w-0 py-3">
-                  <div className="truncate text-base font-semibold tracking-tight">{surah.namaLatin}</div>
-                  <div className="truncate text-sm text-muted-foreground">{surah.arti}</div>
-                </Link>
-                <div>
-                  <span className="inline-block rounded-full border border-border px-2.5 py-0.5 text-xs font-medium">
-                    {tempatTurunLabel(surah.tempatTurun)}
-                  </span>
+            {visible.map((surah) => {
+              const english = englishMap.get(surah.nomor);
+              return (
+                <div
+                  key={surah.nomor}
+                  className="row grid min-h-[72px] grid-cols-[72px_minmax(200px,1.4fr)_130px_90px_minmax(120px,1fr)_64px] items-center border-b border-border px-5 last:border-b-0"
+                >
+                  <SurahBadge number={surah.nomor} />
+                  <Link href={`/surah/${surah.nomor}`} className="min-w-0 py-3">
+                    <div className="truncate text-base font-semibold tracking-tight">{surah.namaLatin}</div>
+                    <div className="truncate text-sm text-muted-foreground">{surah.arti}</div>
+                    {english && (
+                      <div className="truncate text-[11px] text-muted-foreground/80">
+                        {english.englishName} · {english.englishNameTranslation}
+                      </div>
+                    )}
+                  </Link>
+                  <div>
+                    <span className="inline-block rounded-full border border-border px-2.5 py-0.5 text-xs font-medium">
+                      {tempatTurunLabel(surah.tempatTurun)}
+                    </span>
+                  </div>
+                  <span className="text-sm tabular-nums">{surah.jumlahAyat}</span>
+                  <p lang="ar" dir="rtl" className="font-arabic text-right text-2xl leading-relaxed">
+                    {surah.nama}
+                  </p>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => togglePlay(surah)}
+                      className="icon-button h-9 w-9"
+                      aria-label={`Putar ${surah.namaLatin}`}
+                    >
+                      {playingNumber === surah.nomor ? <IoPause size={16} /> : <IoPlay size={16} />}
+                    </button>
+                  </div>
                 </div>
-                <span className="text-sm tabular-nums">{surah.jumlahAyat}</span>
-                <p lang="ar" dir="rtl" className="font-arabic text-right text-2xl leading-relaxed">
-                  {surah.nama}
-                </p>
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => togglePlay(surah)}
-                    className="icon-button h-9 w-9"
-                    aria-label={`Putar ${surah.namaLatin}`}
-                  >
-                    {playingNumber === surah.nomor ? <IoPause size={16} /> : <IoPlay size={16} />}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -188,20 +211,28 @@ export default function SurahTable({ surahs }: { surahs: SurahInfo[] }) {
 
       {/* Daftar mobile */}
       <div className="overflow-hidden rounded-xl border border-border bg-card sm:hidden">
-        {visible.map((surah) => (
-          <div key={surah.nomor} className="flex items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0">
-            <SurahBadge number={surah.nomor} size={32} />
-            <Link href={`/surah/${surah.nomor}`} className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-semibold">{surah.namaLatin}</div>
-              <div className="truncate text-[13px] text-muted-foreground">
-                {surah.arti} · {surah.jumlahAyat} ayat
-              </div>
-            </Link>
-            <p lang="ar" dir="rtl" className="font-arabic shrink-0 text-xl">
-              {surah.nama}
-            </p>
-          </div>
-        ))}
+        {visible.map((surah) => {
+          const english = englishMap.get(surah.nomor);
+          return (
+            <div key={surah.nomor} className="flex items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0">
+              <SurahBadge number={surah.nomor} size={32} />
+              <Link href={`/surah/${surah.nomor}`} className="min-w-0 flex-1">
+                <div className="truncate text-[15px] font-semibold">{surah.namaLatin}</div>
+                <div className="truncate text-[13px] text-muted-foreground">
+                  {surah.arti} · {surah.jumlahAyat} ayat
+                </div>
+                {english && (
+                  <div className="truncate text-[11px] text-muted-foreground/80">
+                    {english.englishName} · {english.englishNameTranslation}
+                  </div>
+                )}
+              </Link>
+              <p lang="ar" dir="rtl" className="font-arabic shrink-0 text-xl">
+                {surah.nama}
+              </p>
+            </div>
+          );
+        })}
         <Pagination
           total={filtered.length}
           start={filtered.length ? start + 1 : 0}

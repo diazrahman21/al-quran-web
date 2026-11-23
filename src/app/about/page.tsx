@@ -18,6 +18,7 @@ export default function AboutPage() {
           <ul className="mt-4 space-y-2 text-[15px] text-muted-foreground">
             <li>Teks Arab lengkap untuk 114 surah</li>
             <li>Terjemahan bahasa Indonesia yang dapat disembunyikan</li>
+            <li>Terjemahan bahasa Inggris dan transliterasi dari Muhammad Asad</li>
             <li>Audio bacaan per ayat dari beberapa qari</li>
             <li>Doa dan dzikir harian lengkap dengan terjemahan</li>
             <li>Penanda, salin, dan bagikan ayat</li>
@@ -28,9 +29,10 @@ export default function AboutPage() {
         <section className="border-t border-border pt-6">
           <h2 className="text-lg font-semibold">Sumber data</h2>
           <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-            Data surah, ayat, terjemahan, audio, serta doa dan dzikir berasal dari equran.id. Kami
-            menyimpan salinan daftar surah sebagai cadangan agar daftar tetap dapat ditampilkan saat
-            layanan data tidak dapat dijangkau.
+            Data surah, ayat, terjemahan Indonesia dan Inggris, audio, serta doa dan dzikir berasal
+            dari equran.id. Terjemahan Inggris menggunakan versi Muhammad Asad. Kami menyimpan salinan
+            daftar surah sebagai cadangan agar daftar tetap dapat ditampilkan saat layanan data tidak
+            dapat dijangkau.
           </p>
         </section>
       </div>

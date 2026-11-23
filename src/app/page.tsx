@@ -184,6 +184,9 @@ export default function Home() {
             <Link href="/about" className="outline-button h-12 text-[15px]" style={{ paddingLeft: 22, paddingRight: 22 }}>
               Pelajari lebih lanjut
             </Link>
+            <Link href="/doa" className="outline-button h-12 text-[15px]" style={{ paddingLeft: 22, paddingRight: 22 }}>
+              Doa & dzikir
+            </Link>
           </div>
         </div>
 

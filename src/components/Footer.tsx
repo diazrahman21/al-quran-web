@@ -9,6 +9,9 @@ export default function Footer() {
           <Link href="/surah" className="nav-link px-0 py-0 hover:bg-transparent hover:text-foreground">
             Daftar Surah
           </Link>
+          <Link href="/doa" className="nav-link px-0 py-0 hover:bg-transparent hover:text-foreground">
+            Doa & Dzikir
+          </Link>
           <Link href="/about" className="nav-link px-0 py-0 hover:bg-transparent hover:text-foreground">
             Tentang
           </Link>

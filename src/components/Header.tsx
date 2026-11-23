@@ -12,6 +12,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 const links = [
   { href: '/', label: 'Beranda' },
   { href: '/surah', label: 'Daftar Surah' },
+  { href: '/doa', label: 'Doa & Dzikir' },
   { href: '/about', label: 'Tentang' },
 ];
 

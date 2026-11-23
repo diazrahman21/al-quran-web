@@ -1,54 +1,42 @@
+export const metadata = {
+  title: 'Tentang — BacaQuran',
+  description: 'Tentang platform BacaQuran dan sumber data yang digunakan.',
+};
+
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <main className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">
-            Tentang BacaQuran
-          </h1>
-          
-          <div className="space-y-4 text-gray-700 dark:text-gray-300">
-            <p>
-              BacaQuran merupakan platform digital yang memudahkan pengguna dalam membaca dan mempelajari Al-Qur’an secara praktis dan nyaman. 
-              Website ini dikembangkan dengan tampilan modern serta desain responsif untuk menghadirkan pengalaman terbaik dalam mengakses dan memahami kitab suci.            
-            </p>
+    <main className="page-container max-w-reader pb-20 pt-14">
+      <h1 className="text-[34px] font-bold leading-[1.1] tracking-[-0.035em] sm:text-[40px]">Tentang BacaQuran</h1>
+      <p className="mt-4 text-[17px] leading-relaxed text-muted-foreground">
+        BacaQuran memudahkan Anda membaca dan mempelajari Al-Qur’an dengan tampilan yang nyaman,
+        teks Arab yang jelas, terjemahan bahasa Indonesia, serta bacaan audio dari qari pilihan.
+      </p>
 
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
-              Fitur Utama
-            </h2>
-            <ul className="list-disc list-inside space-y-2">
-              <li>Teks Al-Quran lengkap 114 surah dengan tulisan Arab yang jelas</li>
-              <li>Terjemahan dalam Bahasa Indonesia</li>
-              <li>Audio bacaan dari qari terkenal</li>
-              <li>Antarmuka responsif untuk semua perangkat</li>
-              <li>Mode gelap untuk kenyamanan membaca</li>
-            </ul>
+      <div className="mt-12 grid gap-10 sm:grid-cols-2">
+        <section className="border-t border-border pt-6">
+          <h2 className="text-lg font-semibold">Fitur utama</h2>
+          <ul className="mt-4 space-y-2 text-[15px] text-muted-foreground">
+            <li>Teks Arab lengkap untuk 114 surah</li>
+            <li>Terjemahan bahasa Indonesia yang dapat disembunyikan</li>
+            <li>Audio bacaan per ayat dari beberapa qari</li>
+            <li>Penanda, salin, dan bagikan ayat</li>
+            <li>Tampilan responsif dengan mode gelap</li>
+          </ul>
+        </section>
 
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
-              Sumber Data
-            </h2>
-            <p>
-              Data Al-Quran, terjemahan, dan audio diambil dari Al-Quran Cloud API,
-              sebuah layanan gratis yang menyediakan akses ke Al-Quran digital.
-            </p>
+        <section className="border-t border-border pt-6">
+          <h2 className="text-lg font-semibold">Sumber data</h2>
+          <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+            Data surah, ayat, terjemahan, dan audio berasal dari equran.id. Kami menyimpan salinan
+            daftar surah sebagai cadangan agar daftar tetap dapat ditampilkan saat layanan data tidak
+            dapat dijangkau.
+          </p>
+        </section>
+      </div>
 
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mt-6 mb-3">
-              Teknologi
-            </h2>
-            <p>
-              Website ini dibangun menggunakan Next.js 15, React 19, TypeScript, dan
-              Tailwind CSS untuk memberikan performa terbaik dan pengalaman pengguna
-              yang optimal.
-            </p>
-
-            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Semoga website ini bermanfaat dalam mempelajari Al-Quran
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+      <p className="mt-16 border-t border-border pt-8 text-center text-sm text-muted-foreground">
+        Semoga BacaQuran bermanfaat dalam mempelajari Al-Qur’an.
+      </p>
+    </main>
   );
 }

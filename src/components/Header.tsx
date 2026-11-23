@@ -1,95 +1,97 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { HiMenu, HiX } from 'react-icons/hi';
+import { IoMoon, IoSunny } from 'react-icons/io5';
+import emblem from '@/assets/BacaQuran Emerald Gold Emblem.webp';
+import { useTheme } from '@/contexts/ThemeContext';
+
+const links = [
+  { href: '/', label: 'Beranda' },
+  { href: '/surah', label: 'Daftar Surah' },
+  { href: '/about', label: 'Tentang' },
+];
+
+function isActive(pathname: string, href: string) {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
-      <nav className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-            <span className="text-xl font-bold text-green-700 dark:text-green-400">
-              BacaQuran
-            </span>
-          </Link>
-          
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link 
-              href="/" 
-              className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-            >
-              Beranda
-            </Link>
-            <Link 
-              href="/surah" 
-              className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-            >
-              Daftar Surah
-            </Link>
-            <Link 
-              href="/about" 
-              className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-            >
-              Tentang
-            </Link>
-          </div>
+    <header className="sticky top-0 z-50 border-b border-border bg-background">
+      <div className="page-container flex min-h-16 items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2.5 text-lg font-bold tracking-tight" onClick={() => setMenuOpen(false)}>
+          <Image src={emblem} alt="" width={28} height={28} className="shrink-0" priority />
+          BacaQuran
+        </Link>
 
-          {/* Hamburger Button */}
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`nav-link ${isActive(pathname, link.href) ? 'nav-link-active' : ''}`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-1">
           <button
-            onClick={toggleMenu}
-            className="md:hidden text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors p-2"
-            aria-label="Toggle menu"
+            type="button"
+            onClick={toggleTheme}
+            className="hidden h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted md:flex"
+            aria-label={theme === 'dark' ? 'Gunakan tema terang' : 'Gunakan tema gelap'}
+            title={theme === 'dark' ? 'Tema terang' : 'Tema gelap'}
           >
-            {isMenuOpen ? (
-              <HiX className="w-6 h-6" />
-            ) : (
-              <HiMenu className="w-6 h-6" />
-            )}
+            {theme === 'dark' ? <IoSunny size={18} /> : <IoMoon size={18} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="icon-button h-11 w-11 md:hidden"
+            aria-label={menuOpen ? 'Tutup menu' : 'Buka menu'}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <HiX size={22} /> : <HiMenu size={22} />}
           </button>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-            <div className="flex flex-col gap-4">
-              <Link 
-                href="/" 
-                onClick={closeMenu}
-                className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors py-2"
+      {menuOpen && (
+        <nav className="border-t border-border bg-card md:hidden" aria-label="Navigasi mobile">
+          <div className="page-container flex flex-col gap-1 py-3">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className={`nav-link ${isActive(pathname, link.href) ? 'nav-link-active' : ''}`}
               >
-                Beranda
+                {link.label}
               </Link>
-              <Link 
-                href="/surah" 
-                onClick={closeMenu}
-                className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors py-2"
-              >
-                Daftar Surah
-              </Link>
-              <Link 
-                href="/about" 
-                onClick={closeMenu}
-                className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors py-2"
-              >
-                Tentang
-              </Link>
-            </div>
+            ))}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="nav-link flex w-full items-center gap-2 text-left"
+            >
+              {theme === 'dark' ? <IoSunny size={17} /> : <IoMoon size={17} />}
+              {theme === 'dark' ? 'Tema terang' : 'Tema gelap'}
+            </button>
           </div>
-        )}
-      </nav>
+        </nav>
+      )}
     </header>
   );
 }
